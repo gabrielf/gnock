@@ -120,6 +120,18 @@ var _ = Describe("gnock", func() {
 			transport.RoundTrip(req)
 		}).To(Panic())
 	})
+	It("can verify that all interceptors have been used with IsDone()", func() {
+		transport := gnock.Gnock("http://example.com").
+			Get("/").
+			Reply("body")
+
+		// This defer is run after the method at which time the above interceptor will have been called
+		defer transport.IsDone()
+
+		Expect(transport.IsDone).To(Panic())
+
+		MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+	})
 })
 
 func NewRequest(method, url string, body io.Reader) *http.Request {

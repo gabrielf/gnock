@@ -29,6 +29,14 @@ func (s *Scope) RoundTrip(req *http.Request) (*http.Response, error) {
 	panic(fmt.Sprintf("No match found for request: %+v", req))
 }
 
+func (s *Scope) IsDone() {
+	for _, interceptor := range s.interceptors {
+		if interceptor.times > 0 {
+			panic(fmt.Sprintf("Not all interceptors have been used! Found: %+v", interceptor))
+		}
+	}
+}
+
 func (s *Scope) Intercept(method, path string) *Interceptor {
 	i := NewInterceptor(s, method, path)
 	s.interceptors = append(s.interceptors, i)
