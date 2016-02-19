@@ -88,6 +88,19 @@ var _ = Describe("nock", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
+	It("intercepts custom HTTP methods", func() {
+		transport := nock.Nock("http://example.com").
+			Intercept("PROPFIND", "/").
+			Reply(`<?xml version="1.0" encoding="utf-8" ?>`)
+
+		req, err := http.NewRequest("PROPFIND", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err := transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(res.StatusCode).To(Equal(200))
+		Expect(toString(res.Body)).To(Equal(`<?xml version="1.0" encoding="utf-8" ?>`))
+	})
 	It("panics when no match is found for the request", func() {
 		transport := nock.Nock("http://example.com")
 

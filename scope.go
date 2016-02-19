@@ -29,34 +29,30 @@ func (s *Scope) RoundTrip(req *http.Request) (*http.Response, error) {
 	panic(fmt.Sprintf("No match found for request: %+v", req))
 }
 
-func (s *Scope) Get(path string) *Interceptor {
-	i := NewInterceptor(s, "GET", path)
+func (s *Scope) Intercept(method, path string) *Interceptor {
+	i := NewInterceptor(s, method, path)
 	s.interceptors = append(s.interceptors, i)
 	return i
+}
+
+func (s *Scope) Get(path string) *Interceptor {
+	return s.Intercept("GET", path)
 }
 
 func (s *Scope) Post(path string) *Interceptor {
-	i := NewInterceptor(s, "POST", path)
-	s.interceptors = append(s.interceptors, i)
-	return i
+	return s.Intercept("POST", path)
 }
 
 func (s *Scope) Put(path string) *Interceptor {
-	i := NewInterceptor(s, "PUT", path)
-	s.interceptors = append(s.interceptors, i)
-	return i
+	return s.Intercept("PUT", path)
 }
 
 func (s *Scope) Options(path string) *Interceptor {
-	i := NewInterceptor(s, "OPTIONS", path)
-	s.interceptors = append(s.interceptors, i)
-	return i
+	return s.Intercept("OPTIONS", path)
 }
 
 func (s *Scope) Delete(path string) *Interceptor {
-	i := NewInterceptor(s, "DELETE", path)
-	s.interceptors = append(s.interceptors, i)
-	return i
+	return s.Intercept("DELETE", path)
 }
 
 func (s *Scope) intercepts(req *http.Request) bool {
