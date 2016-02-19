@@ -30,6 +30,16 @@ var _ = Describe("nock", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
+	It("panics when no match is found for the request", func() {
+		transport := nock.Nock("http://example.com")
+
+		req, err := http.NewRequest("GET", "http://other.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(func () {
+			transport.RoundTrip(req)
+		}).To(Panic())
+	})
 })
 
 func toString(reader io.Reader) string {

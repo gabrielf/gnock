@@ -27,7 +27,7 @@ func (s *Scope) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("No match found for request: %+v", req)
+	panic(fmt.Sprintf("No match found for request: %+v", req))
 }
 
 func (s *Scope) Get(path string) *Interceptor {
