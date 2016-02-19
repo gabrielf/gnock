@@ -11,6 +11,7 @@ type Interceptor struct {
 	method string
 	path   string
 	body   string
+	times  int
 }
 
 func NewInterceptor(scope *Scope, method, path string) *Interceptor {
@@ -18,7 +19,13 @@ func NewInterceptor(scope *Scope, method, path string) *Interceptor {
 		scope:  scope,
 		method: method,
 		path:   path,
+		times:  1,
 	}
+}
+
+func (i *Interceptor) Times(times int) *Interceptor {
+	i.times = times
+	return i
 }
 
 func (i *Interceptor) Reply(body string) *Scope {
@@ -27,6 +34,9 @@ func (i *Interceptor) Reply(body string) *Scope {
 }
 
 func (i *Interceptor) intercepts(req *http.Request) bool {
+	if i.times < 1 {
+		return false
+	}
 	if !i.scope.intercepts(req) {
 		return false
 	}
@@ -37,6 +47,7 @@ func (i *Interceptor) intercepts(req *http.Request) bool {
 }
 
 func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
+	i.times--
 	return &http.Response{
 		Request:    req,
 		StatusCode: http.StatusOK,

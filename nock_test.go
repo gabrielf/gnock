@@ -40,7 +40,7 @@ var _ = Describe("nock", func() {
 			transport.RoundTrip(req)
 		}).To(Panic())
 	})
-	It("removes interceptors when used", func() {
+	It("uses an added interceptor only once", func() {
 		transport := nock.Nock("http://example.com").
 			Get("/").
 			Reply("Hello, World!")
@@ -50,6 +50,24 @@ var _ = Describe("nock", func() {
 
 		_, err = transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
+
+		Expect(func() {
+			transport.RoundTrip(req)
+		}).To(Panic())
+	})
+	It("can repeat response several times", func() {
+		transport := nock.Nock("http://example.com").
+			Get("/").
+			Times(4).
+			Reply("Hello, World!")
+
+		req, err := http.NewRequest("GET", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		for i := 0; i < 4; i++ {
+			_, err = transport.RoundTrip(req)
+			Expect(err).ToNot(HaveOccurred())
+		}
 
 		Expect(func() {
 			transport.RoundTrip(req)

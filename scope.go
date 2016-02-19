@@ -20,9 +20,8 @@ func NewScope(host string) *Scope {
 }
 
 func (s *Scope) RoundTrip(req *http.Request) (*http.Response, error) {
-	for i, interceptor := range s.interceptors {
+	for _, interceptor := range s.interceptors {
 		if interceptor.intercepts(req) {
-			s.interceptors = append(s.interceptors[:i], s.interceptors[i+1:]...)
 			return interceptor.respond(req)
 		}
 	}
