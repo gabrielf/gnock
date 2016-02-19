@@ -28,7 +28,26 @@ var _ = Describe("nock", func() {
 
 		res, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
+		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
+	})
+	It("can chain multiple responses", func() {
+		transport := nock.Nock("http://example.com").
+			Get("/").
+			Reply("Response 1").
+			Get("/").
+			Reply("Response 2")
+
+		req, err := http.NewRequest("GET", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err := transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("Response 1"))
+
+		res, err = transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("Response 2"))
 	})
 	It("panics when no match is found for the request", func() {
 		transport := nock.Nock("http://example.com")
