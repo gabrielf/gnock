@@ -23,8 +23,7 @@ var _ = Describe("nock", func() {
 			Get("/").
 			Reply("Hello, World!")
 
-		req, err := http.NewRequest("GET", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("GET", "http://example.com/", nil)
 
 		res, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
@@ -38,8 +37,7 @@ var _ = Describe("nock", func() {
 			Get("/").
 			Reply("Response 2")
 
-		req, err := http.NewRequest("GET", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("GET", "http://example.com/", nil)
 
 		res, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
@@ -60,29 +58,25 @@ var _ = Describe("nock", func() {
 			Delete("/").
 			Reply("delete")
 
-		req, err := http.NewRequest("POST", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("POST", "http://example.com/", nil)
 
 		res, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("post"))
 
-		req, err = http.NewRequest("PUT", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req = NewRequest("PUT", "http://example.com/", nil)
 
 		res, err = transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("put"))
 
-		req, err = http.NewRequest("OPTIONS", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req = NewRequest("OPTIONS", "http://example.com/", nil)
 
 		res, err = transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("options"))
 
-		req, err = http.NewRequest("DELETE", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req = NewRequest("DELETE", "http://example.com/", nil)
 
 		res, err = transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
@@ -93,8 +87,7 @@ var _ = Describe("nock", func() {
 			Intercept("PROPFIND", "/").
 			Reply(`<?xml version="1.0" encoding="utf-8" ?>`)
 
-		req, err := http.NewRequest("PROPFIND", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("PROPFIND", "http://example.com/", nil)
 
 		res, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
@@ -104,8 +97,7 @@ var _ = Describe("nock", func() {
 	It("panics when no match is found for the request", func() {
 		transport := nock.Nock("http://example.com")
 
-		req, err := http.NewRequest("GET", "http://other.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("GET", "http://other.com/", nil)
 
 		Expect(func() {
 			transport.RoundTrip(req)
@@ -116,10 +108,9 @@ var _ = Describe("nock", func() {
 			Get("/").
 			Reply("Hello, World!")
 
-		req, err := http.NewRequest("GET", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("GET", "http://example.com/", nil)
 
-		_, err = transport.RoundTrip(req)
+		_, err := transport.RoundTrip(req)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(func() {
@@ -132,11 +123,10 @@ var _ = Describe("nock", func() {
 			Times(4).
 			Reply("Hello, World!")
 
-		req, err := http.NewRequest("GET", "http://example.com/", nil)
-		Expect(err).ToNot(HaveOccurred())
+		req := NewRequest("GET", "http://example.com/", nil)
 
 		for i := 0; i < 4; i++ {
-			_, err = transport.RoundTrip(req)
+			_, err := transport.RoundTrip(req)
 			Expect(err).ToNot(HaveOccurred())
 		}
 
@@ -145,6 +135,12 @@ var _ = Describe("nock", func() {
 		}).To(Panic())
 	})
 })
+
+func NewRequest(method, url string, body io.Reader) *http.Request {
+	req, err := http.NewRequest(method, url, body)
+	Expect(err).ToNot(HaveOccurred())
+	return req
+}
 
 func toString(reader io.Reader) string {
 	data, err := ioutil.ReadAll(reader)
