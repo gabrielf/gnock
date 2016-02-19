@@ -1,4 +1,4 @@
-package nock_test
+package gnock_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,17 +9,17 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gabrielf/nock"
+	"github.com/gabrielf/gnock"
 )
 
 func TestGinkgo(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Nock Suite")
+	RunSpecs(t, "Gnock Suite")
 }
 
-var _ = Describe("nock", func() {
+var _ = Describe("gnock", func() {
 	It("fakes GET respons", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Reply("Hello, World!")
 
@@ -31,7 +31,7 @@ var _ = Describe("nock", func() {
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
 	It("can chain multiple responses", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Reply("Response 1").
 			Get("/").
@@ -48,7 +48,7 @@ var _ = Describe("nock", func() {
 		Expect(toString(res.Body)).To(Equal("Response 2"))
 	})
 	It("fakes responses for POST, PUT, OPTIONS, DELETE requests", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Post("/").
 			Reply("post").
 			Put("/").
@@ -83,7 +83,7 @@ var _ = Describe("nock", func() {
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
 	It("intercepts custom HTTP methods", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Intercept("PROPFIND", "/").
 			Reply(`<?xml version="1.0" encoding="utf-8" ?>`)
 
@@ -95,7 +95,7 @@ var _ = Describe("nock", func() {
 		Expect(toString(res.Body)).To(Equal(`<?xml version="1.0" encoding="utf-8" ?>`))
 	})
 	It("panics when no match is found for the request", func() {
-		transport := nock.Nock("http://example.com")
+		transport := gnock.Gnock("http://example.com")
 
 		req := NewRequest("GET", "http://other.com/", nil)
 
@@ -104,7 +104,7 @@ var _ = Describe("nock", func() {
 		}).To(Panic())
 	})
 	It("uses an added interceptor only once", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Reply("Hello, World!")
 
@@ -118,7 +118,7 @@ var _ = Describe("nock", func() {
 		}).To(Panic())
 	})
 	It("can repeat response several times", func() {
-		transport := nock.Nock("http://example.com").
+		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Times(4).
 			Reply("Hello, World!")

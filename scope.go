@@ -1,4 +1,4 @@
-package nock
+package gnock
 
 import (
 	"fmt"
