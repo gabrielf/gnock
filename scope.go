@@ -35,6 +35,30 @@ func (s *Scope) Get(path string) *Interceptor {
 	return i
 }
 
+func (s *Scope) Post(path string) *Interceptor {
+	i := NewInterceptor(s, "POST", path)
+	s.interceptors = append(s.interceptors, i)
+	return i
+}
+
+func (s *Scope) Put(path string) *Interceptor {
+	i := NewInterceptor(s, "PUT", path)
+	s.interceptors = append(s.interceptors, i)
+	return i
+}
+
+func (s *Scope) Options(path string) *Interceptor {
+	i := NewInterceptor(s, "OPTIONS", path)
+	s.interceptors = append(s.interceptors, i)
+	return i
+}
+
+func (s *Scope) Delete(path string) *Interceptor {
+	i := NewInterceptor(s, "DELETE", path)
+	s.interceptors = append(s.interceptors, i)
+	return i
+}
+
 func (s *Scope) intercepts(req *http.Request) bool {
 	return req.URL.Scheme+"://"+req.URL.Host == s.host
 }

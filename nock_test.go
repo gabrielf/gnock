@@ -49,6 +49,45 @@ var _ = Describe("nock", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(toString(res.Body)).To(Equal("Response 2"))
 	})
+	It("fakes responses for POST, PUT, OPTIONS, DELETE requests", func() {
+		transport := nock.Nock("http://example.com").
+			Post("/").
+			Reply("post").
+			Put("/").
+			Reply("put").
+			Options("/").
+			Reply("options").
+			Delete("/").
+			Reply("delete")
+
+		req, err := http.NewRequest("POST", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err := transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("post"))
+
+		req, err = http.NewRequest("PUT", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err = transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("put"))
+
+		req, err = http.NewRequest("OPTIONS", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err = transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("options"))
+
+		req, err = http.NewRequest("DELETE", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		res, err = transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(toString(res.Body)).To(Equal("delete"))
+	})
 	It("panics when no match is found for the request", func() {
 		transport := nock.Nock("http://example.com")
 
