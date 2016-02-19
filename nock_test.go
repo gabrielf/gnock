@@ -36,7 +36,22 @@ var _ = Describe("nock", func() {
 		req, err := http.NewRequest("GET", "http://other.com/", nil)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(func () {
+		Expect(func() {
+			transport.RoundTrip(req)
+		}).To(Panic())
+	})
+	It("removes interceptors when used", func() {
+		transport := nock.Nock("http://example.com").
+			Get("/").
+			Reply("Hello, World!")
+
+		req, err := http.NewRequest("GET", "http://example.com/", nil)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, err = transport.RoundTrip(req)
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(func() {
 			transport.RoundTrip(req)
 		}).To(Panic())
 	})
