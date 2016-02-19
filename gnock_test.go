@@ -25,8 +25,7 @@ var _ = Describe("gnock", func() {
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
-		res, err := transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res := MustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
@@ -39,12 +38,10 @@ var _ = Describe("gnock", func() {
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
-		res, err := transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res := MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("Response 1"))
 
-		res, err = transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res = MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("Response 2"))
 	})
 	It("fakes responses for POST, PUT, OPTIONS, DELETE requests", func() {
@@ -59,27 +56,19 @@ var _ = Describe("gnock", func() {
 			Reply("delete")
 
 		req := NewRequest("POST", "http://example.com/", nil)
-
-		res, err := transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res := MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("post"))
 
 		req = NewRequest("PUT", "http://example.com/", nil)
-
-		res, err = transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res = MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("put"))
 
 		req = NewRequest("OPTIONS", "http://example.com/", nil)
-
-		res, err = transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res = MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("options"))
 
 		req = NewRequest("DELETE", "http://example.com/", nil)
-
-		res, err = transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res = MustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
 	It("intercepts custom HTTP methods", func() {
@@ -89,8 +78,7 @@ var _ = Describe("gnock", func() {
 
 		req := NewRequest("PROPFIND", "http://example.com/", nil)
 
-		res, err := transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		res := MustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal(`<?xml version="1.0" encoding="utf-8" ?>`))
 	})
@@ -110,8 +98,7 @@ var _ = Describe("gnock", func() {
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
-		_, err := transport.RoundTrip(req)
-		Expect(err).ToNot(HaveOccurred())
+		MustRoundTrip(transport, req)
 
 		Expect(func() {
 			transport.RoundTrip(req)
@@ -126,8 +113,7 @@ var _ = Describe("gnock", func() {
 		req := NewRequest("GET", "http://example.com/", nil)
 
 		for i := 0; i < 4; i++ {
-			_, err := transport.RoundTrip(req)
-			Expect(err).ToNot(HaveOccurred())
+			MustRoundTrip(transport, req)
 		}
 
 		Expect(func() {
@@ -140,6 +126,12 @@ func NewRequest(method, url string, body io.Reader) *http.Request {
 	req, err := http.NewRequest(method, url, body)
 	Expect(err).ToNot(HaveOccurred())
 	return req
+}
+
+func MustRoundTrip(transport http.RoundTripper, req *http.Request) *http.Response {
+	res, err := transport.RoundTrip(req)
+	Expect(err).ToNot(HaveOccurred())
+	return res
 }
 
 func toString(reader io.Reader) string {
