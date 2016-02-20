@@ -10,6 +10,7 @@ type Interceptor struct {
 	scope  *Scope
 	method string
 	path   string
+	status int
 	body   string
 	times  int
 }
@@ -28,7 +29,8 @@ func (i *Interceptor) Times(times int) *Interceptor {
 	return i
 }
 
-func (i *Interceptor) Reply(body string) *Scope {
+func (i *Interceptor) Reply(status int, body string) *Scope {
+	i.status = status
 	i.body = body
 	return i.scope
 }
@@ -50,7 +52,7 @@ func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 	i.times--
 	return &http.Response{
 		Request:    req,
-		StatusCode: http.StatusOK,
+		StatusCode: i.status,
 		Body:       ioutil.NopCloser(bytes.NewBufferString(i.body)),
 	}, nil
 }

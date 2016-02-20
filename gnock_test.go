@@ -21,7 +21,7 @@ var _ = Describe("gnock", func() {
 	It("fakes GET respons", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
-			Reply("Hello, World!")
+			Reply(200, "Hello, World!")
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
@@ -32,9 +32,9 @@ var _ = Describe("gnock", func() {
 	It("can chain multiple responses", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
-			Reply("Response 1").
+			Reply(200, "Response 1").
 			Get("/").
-			Reply("Response 2")
+			Reply(200, "Response 2")
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
@@ -47,34 +47,38 @@ var _ = Describe("gnock", func() {
 	It("fakes responses for POST, PUT, OPTIONS, DELETE requests", func() {
 		transport := gnock.Gnock("http://example.com").
 			Post("/").
-			Reply("post").
+			Reply(201, "post").
 			Put("/").
-			Reply("put").
+			Reply(202, "put").
 			Options("/").
-			Reply("options").
+			Reply(204, "options").
 			Delete("/").
-			Reply("delete")
+			Reply(204, "delete")
 
 		req := NewRequest("POST", "http://example.com/", nil)
 		res := MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(201))
 		Expect(toString(res.Body)).To(Equal("post"))
 
 		req = NewRequest("PUT", "http://example.com/", nil)
 		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(202))
 		Expect(toString(res.Body)).To(Equal("put"))
 
 		req = NewRequest("OPTIONS", "http://example.com/", nil)
 		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("options"))
 
 		req = NewRequest("DELETE", "http://example.com/", nil)
 		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
 	It("intercepts custom HTTP methods", func() {
 		transport := gnock.Gnock("http://example.com").
 			Intercept("PROPFIND", "/").
-			Reply(`<?xml version="1.0" encoding="utf-8" ?>`)
+			Reply(200, `<?xml version="1.0" encoding="utf-8" ?>`)
 
 		req := NewRequest("PROPFIND", "http://example.com/", nil)
 
@@ -94,7 +98,7 @@ var _ = Describe("gnock", func() {
 	It("uses an added interceptor only once", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
-			Reply("Hello, World!")
+			Reply(200, "Hello, World!")
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
@@ -108,7 +112,7 @@ var _ = Describe("gnock", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Times(4).
-			Reply("Hello, World!")
+			Reply(200, "Hello, World!")
 
 		req := NewRequest("GET", "http://example.com/", nil)
 
@@ -123,7 +127,7 @@ var _ = Describe("gnock", func() {
 	It("can verify that all interceptors have been used with IsDone()", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
-			Reply("body")
+			Reply(200, "body")
 
 		// This defer is run after the method at which time the above interceptor will have been called
 		defer transport.IsDone()
@@ -135,10 +139,10 @@ var _ = Describe("gnock", func() {
 	It("can fake requests to multiple domains", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
-			Reply("body").
+			Reply(200, "body").
 			Gnock("http://other.com").
 			Get("/").
-			Reply("other")
+			Reply(200, "other")
 
 		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(200))
