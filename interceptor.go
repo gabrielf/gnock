@@ -40,6 +40,12 @@ func (i *Interceptor) Reply(status int, body string) *Scope {
 	})
 }
 
+func (i *Interceptor) ReplyError(err error) *Scope {
+	return i.Respond(func(req *http.Request) (*http.Response, error) {
+		return nil, err
+	})
+}
+
 func (i *Interceptor) Respond(responder Responder) *Scope {
 	i.responder = responder
 	return i.scope

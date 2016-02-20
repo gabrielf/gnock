@@ -11,6 +11,8 @@ import (
 
 	"bytes"
 
+	"fmt"
+
 	"github.com/gabrielf/gnock"
 )
 
@@ -168,6 +170,16 @@ var _ = Describe("gnock", func() {
 		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(418))
 		Expect(toString(res.Body)).To(Equal("I'm a teapot"))
+	})
+	It("can fake errors", func() {
+		kaboom := fmt.Errorf("Kaboom!")
+
+		transport := gnock.Gnock("http://example.com").
+			Get("/").
+			ReplyError(kaboom)
+
+		_, err := transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+		Expect(err).To(Equal(kaboom))
 	})
 })
 
