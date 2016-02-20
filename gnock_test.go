@@ -179,6 +179,17 @@ var _ = Describe("gnock", func() {
 		_, err := transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
 		Expect(err).To(Equal(kaboom))
 	})
+	Describe("Faking JSON", func() {
+		It("can fake JSON responses using strings", func() {
+			transport := gnock.Gnock("http://example.com").
+				Get("/json").
+				ReplyJSON(200, `{"key":"value"}`)
+
+			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
+			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
+		})
+	})
 })
 
 func NewRequest(method, url string, body io.Reader) *http.Request {

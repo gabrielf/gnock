@@ -46,6 +46,17 @@ func (i *Interceptor) ReplyError(err error) *Scope {
 	})
 }
 
+func (i *Interceptor) ReplyJSON(status int, json string) *Scope {
+	return i.Respond(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			Request:    req,
+			StatusCode: status,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(json)),
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}, nil
+	})
+}
+
 func (i *Interceptor) Respond(responder Responder) *Scope {
 	i.responder = responder
 	return i.scope
