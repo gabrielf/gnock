@@ -7,13 +7,16 @@ import (
 )
 
 type Interceptor struct {
-	scope  *Scope
-	method string
-	path   string
-	status int
-	body   string
-	times  int
+	scope     *Scope
+	method    string
+	path      string
+	status    int
+	body      string
+	responder Responder
+	times     int
 }
+
+type Responder func(*http.Request) (*http.Response, error)
 
 func NewInterceptor(scope *Scope, method, path string) *Interceptor {
 	return &Interceptor{
@@ -35,6 +38,11 @@ func (i *Interceptor) Reply(status int, body string) *Scope {
 	return i.scope
 }
 
+func (i *Interceptor) Respond(responder Responder) *Scope {
+	i.responder = responder
+	return i.scope
+}
+
 func (i *Interceptor) intercepts(req *http.Request) bool {
 	if i.times < 1 {
 		return false
@@ -50,6 +58,11 @@ func (i *Interceptor) intercepts(req *http.Request) bool {
 
 func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 	i.times--
+
+	if i.responder != nil {
+		return i.responder(req)
+	}
+
 	return &http.Response{
 		Request:    req,
 		StatusCode: i.status,

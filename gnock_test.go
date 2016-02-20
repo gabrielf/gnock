@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"testing"
 
+	"bytes"
+
 	"github.com/gabrielf/gnock"
 )
 
@@ -151,6 +153,21 @@ var _ = Describe("gnock", func() {
 		res = MustRoundTrip(transport, NewRequest("GET", "http://other.com/", nil))
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("other"))
+	})
+	It("allows responses to be customized with custom responder function", func() {
+		transport := gnock.Gnock("http://example.com").
+			Get("/").
+			Respond(func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				Request:    req,
+				StatusCode: 418,
+				Body:       ioutil.NopCloser(bytes.NewBufferString("I'm a teapot")),
+			}, nil
+		})
+
+		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+		Expect(res.StatusCode).To(Equal(418))
+		Expect(toString(res.Body)).To(Equal("I'm a teapot"))
 	})
 })
 
