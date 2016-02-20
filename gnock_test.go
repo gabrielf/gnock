@@ -4,14 +4,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
-
-	"bytes"
-
-	"fmt"
 
 	"github.com/gabrielf/gnock"
 )
