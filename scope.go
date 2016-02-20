@@ -6,24 +6,46 @@ import (
 )
 
 type Scope struct {
+	parent       *Scope
+	child        *Scope
 	host         string
 	interceptors []*Interceptor
 }
 
 var _ http.RoundTripper = (*Scope)(nil)
 
-func NewScope(host string) *Scope {
+func NewScope(parent *Scope, host string) *Scope {
 	return &Scope{
+		parent:       parent,
 		host:         host,
 		interceptors: make([]*Interceptor, 0),
 	}
 }
 
+func (s *Scope) Gnock(host string) *Scope {
+	s.child = NewScope(s, host)
+	return s.child
+}
+
 func (s *Scope) RoundTrip(req *http.Request) (*http.Response, error) {
+	// This method makes sure to start at the root of the scope hierarchy...
+	if s.parent != nil {
+		return s.parent.RoundTrip(req)
+	}
+
+	return s.roundTrip(req)
+}
+
+func (s *Scope) roundTrip(req *http.Request) (*http.Response, error) {
+	// ...and this method serves matched requests down the scope hierarchy.
 	for _, interceptor := range s.interceptors {
 		if interceptor.intercepts(req) {
 			return interceptor.respond(req)
 		}
+	}
+
+	if s.child != nil {
+		return s.child.roundTrip(req)
 	}
 
 	panic(fmt.Sprintf("No match found for request: %+v", req))

@@ -1,5 +1,5 @@
 package gnock
 
 func Gnock(host string) *Scope {
-	return NewScope(host)
+	return NewScope(nil, host)
 }

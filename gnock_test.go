@@ -132,6 +132,22 @@ var _ = Describe("gnock", func() {
 
 		MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
 	})
+	It("can fake requests to multiple domains", func() {
+		transport := gnock.Gnock("http://example.com").
+			Get("/").
+			Reply("body").
+			Gnock("http://other.com").
+			Get("/").
+			Reply("other")
+
+		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+		Expect(res.StatusCode).To(Equal(200))
+		Expect(toString(res.Body)).To(Equal("body"))
+
+		res = MustRoundTrip(transport, NewRequest("GET", "http://other.com/", nil))
+		Expect(res.StatusCode).To(Equal(200))
+		Expect(toString(res.Body)).To(Equal("other"))
+	})
 })
 
 func NewRequest(method, url string, body io.Reader) *http.Request {
