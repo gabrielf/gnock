@@ -189,6 +189,32 @@ var _ = Describe("gnock", func() {
 			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
 			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
 		})
+		It("can fake JSON responses using structs", func() {
+			type Widget struct {
+				Key string `json:"key"`
+			}
+
+			transport := gnock.Gnock("http://example.com").
+				Get("/json").
+				ReplyJSON(200, Widget{Key: "value"})
+
+			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
+			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
+		})
+		It("can fake JSON responses using map[string]interface{}", func() {
+			json := map[string]interface{}{
+				"key": "value",
+			}
+
+			transport := gnock.Gnock("http://example.com").
+				Get("/json").
+				ReplyJSON(200, json)
+
+			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
+			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
+		})
 	})
 })
 

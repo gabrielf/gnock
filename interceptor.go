@@ -2,6 +2,7 @@ package gnock
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 )
@@ -46,12 +47,12 @@ func (i *Interceptor) ReplyError(err error) *Scope {
 	})
 }
 
-func (i *Interceptor) ReplyJSON(status int, json string) *Scope {
+func (i *Interceptor) ReplyJSON(status int, json interface{}) *Scope {
 	return i.Respond(func(req *http.Request) (*http.Response, error) {
 		return &http.Response{
 			Request:    req,
 			StatusCode: status,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(json)),
+			Body:       ioutil.NopCloser(bytes.NewBufferString(jsonToString(json))),
 			Header:     http.Header{"Content-Type": []string{"application/json"}},
 		}, nil
 	})
@@ -79,4 +80,16 @@ func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 	i.times--
 
 	return i.responder(req)
+}
+
+func jsonToString(input interface{}) string {
+	if str, ok := input.(string); ok {
+		return str
+	}
+
+	buf, err := json.Marshal(input)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(buf)
 }
