@@ -216,6 +216,38 @@ var _ = Describe("gnock", func() {
 			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
 		})
 	})
+	Describe("An interceptor with default reply headers", func() {
+		var interceptor *gnock.Interceptor
+
+		BeforeEach(func() {
+			interceptor = gnock.Gnock("http://example.com").
+				DefaultReplyHeaders(http.Header{
+				"Location": []string{"/login"},
+				"Date":     []string{"2015-09-10"},
+			}).
+				Get("/")
+		})
+		It("responds with the set headers", func() {
+			transport := interceptor.Reply(200, "OK")
+
+			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+			Expect(res.Header["Location"]).To(Equal([]string{"/login"}))
+			Expect(res.Header["Date"]).To(Equal([]string{"2015-09-10"}))
+		})
+		It("does not overwrite headers already set in a responder", func() {
+			transport := interceptor.Respond(func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					Header: http.Header{
+						"Location": []string{"/logout"},
+					},
+				}, nil
+			})
+
+			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+			Expect(res.Header["Location"]).To(Equal([]string{"/logout"}))
+			Expect(res.Header["Date"]).To(Equal([]string{"2015-09-10"}))
+		})
+	})
 })
 
 func NewRequest(method, url string, body io.Reader) *http.Request {

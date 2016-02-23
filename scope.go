@@ -6,19 +6,21 @@ import (
 )
 
 type Scope struct {
-	parent       *Scope
-	child        *Scope
-	host         string
-	interceptors []*Interceptor
+	parent         *Scope
+	child          *Scope
+	host           string
+	interceptors   []*Interceptor
+	defaultHeaders http.Header
 }
 
 var _ http.RoundTripper = (*Scope)(nil)
 
 func NewScope(parent *Scope, host string) *Scope {
 	return &Scope{
-		parent:       parent,
-		host:         host,
-		interceptors: make([]*Interceptor, 0),
+		parent:         parent,
+		host:           host,
+		interceptors:   make([]*Interceptor, 0),
+		defaultHeaders: make(http.Header, 0),
 	}
 }
 
@@ -57,6 +59,11 @@ func (s *Scope) IsDone() {
 			panic(fmt.Sprintf("Not all interceptors have been used! Found: %+v", interceptor))
 		}
 	}
+}
+
+func (s *Scope) DefaultReplyHeaders(headers http.Header) *Scope {
+	s.defaultHeaders = headers
+	return s
 }
 
 func (s *Scope) Intercept(method, path string) *Interceptor {

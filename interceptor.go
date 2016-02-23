@@ -79,7 +79,24 @@ func (i *Interceptor) intercepts(req *http.Request) bool {
 func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 	i.times--
 
-	return i.responder(req)
+	res, err := i.responder(req)
+	if err != nil {
+		return res, err
+	}
+
+	if len(i.scope.defaultHeaders) > 0 && res.Header == nil {
+		res.Header = make(http.Header, 0)
+	}
+	for headerKey, headerValues := range i.scope.defaultHeaders {
+		if len(res.Header[headerKey]) > 0 {
+			continue
+		}
+		for _, headerValue := range headerValues {
+			res.Header.Add(headerKey, headerValue)
+		}
+	}
+
+	return res, nil
 }
 
 func jsonToString(input interface{}) string {
