@@ -85,19 +85,19 @@ func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 		return res, err
 	}
 
+	return i.setDefaultHeaders(res), nil
+}
+
+func (i *Interceptor) setDefaultHeaders(res *http.Response) *http.Response {
 	if len(i.scope.defaultHeaders) > 0 && res.Header == nil {
 		res.Header = make(http.Header, 0)
 	}
 	for headerKey, headerValues := range i.scope.defaultHeaders {
-		if len(res.Header[headerKey]) > 0 {
-			continue
-		}
-		for _, headerValue := range headerValues {
-			res.Header.Add(headerKey, headerValue)
+		if len(res.Header[headerKey]) == 0 {
+			res.Header[headerKey] = headerValues
 		}
 	}
-
-	return res, nil
+	return res
 }
 
 func jsonToString(input interface{}) string {
