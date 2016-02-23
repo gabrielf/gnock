@@ -81,6 +81,7 @@ func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
 
 	res, err := i.responder(req)
 	if err != nil {
+		// We must return res here since real HTTP requests might do that in some cases
 		return res, err
 	}
 
