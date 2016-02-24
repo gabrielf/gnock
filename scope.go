@@ -50,7 +50,7 @@ func (s *Scope) roundTrip(req *http.Request) (*http.Response, error) {
 		return s.child.roundTrip(req)
 	}
 
-	panic(fmt.Sprintf("No match found for request: %+v", req))
+	panic(fmt.Sprintf("Gnock found no match for request: %s\n\nRegistered interceptors:\n%s", describeRequest(req), describeInterceptors(s)))
 }
 
 func (s *Scope) IsDone() {
@@ -94,4 +94,19 @@ func (s *Scope) Delete(path string) *Interceptor {
 
 func (s *Scope) intercepts(req *http.Request) bool {
 	return req.URL.Scheme+"://"+req.URL.Host == s.host
+}
+
+func describeRequest(req *http.Request) string {
+	return fmt.Sprintf("%s %s", req.Method, req.URL.String())
+}
+
+func describeInterceptors(s *Scope) string {
+	result := ""
+	if s.parent != nil {
+		result = describeInterceptors(s.parent)
+	}
+	for _, i := range s.interceptors {
+		result += fmt.Sprintf("%s %s%s\n", i.method, s.host, i.path)
+	}
+	return result
 }

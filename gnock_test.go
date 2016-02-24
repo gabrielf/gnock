@@ -97,6 +97,29 @@ var _ = Describe("gnock", func() {
 			transport.RoundTrip(req)
 		}).To(Panic())
 	})
+	It("describes existing interceptors and request that failed on panic", func(done Done) {
+		transport := gnock.Gnock("http://example.com").
+			Get("/path").
+			Reply(200, "OK").
+			Gnock("http://www.example.com").
+			Post("/form").
+			ReplyJSON(201, `{"key":"value"}`)
+
+		req := NewRequest("GET", "http://other.com/index.html", nil)
+
+		func() {
+			defer func() {
+				if err := recover(); err != nil {
+					Expect(err).To(ContainSubstring("GET http://other.com/index.html"))
+					Expect(err).To(ContainSubstring("GET http://example.com/path"))
+					Expect(err).To(ContainSubstring("POST http://www.example.com/form"))
+					close(done)
+				}
+			}()
+
+			transport.RoundTrip(req)
+		}()
+	})
 	It("uses an added interceptor only once", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
