@@ -1,5 +1,8 @@
-test: vet lint
+test: imports vet lint
 	go test
+
+imports:
+	goimports -w .
 
 vet:
 	go vet ./...
@@ -7,4 +10,4 @@ vet:
 lint:
 	! golint ./... | grep -v 'should have comment'
 
-.PHONY: test vet lint
+.PHONY: test imports vet lint
