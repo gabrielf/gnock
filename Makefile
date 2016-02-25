@@ -1,4 +1,4 @@
-test: imports vet lint
+test: imports vet
 	go test
 
 imports:

@@ -88,6 +88,18 @@ var _ = Describe("gnock", func() {
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal(`<?xml version="1.0" encoding="utf-8" ?>`))
 	})
+	It("can intercept host and path using Regexes", func() {
+		transport := gnock.GnockRegexp("http://.*\\.com").
+			InterceptRegexp("GET", "/(fu)?bar").
+			Times(2).
+			Reply(200, "success")
+
+		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/fubar", nil))
+		Expect(res.StatusCode).To(Equal(200))
+
+		res = MustRoundTrip(transport, NewRequest("GET", "http://other.com/bar", nil))
+		Expect(res.StatusCode).To(Equal(200))
+	})
 	It("panics when no match is found for the request", func() {
 		transport := gnock.Gnock("http://example.com")
 
@@ -104,6 +116,9 @@ var _ = Describe("gnock", func() {
 			Gnock("http://www.example.com").
 			Post("/form").
 			ReplyJSON(201, `{"key":"value"}`)
+		gnock.GnockRegexp("^http://.*\\.example\\.com$").
+			PutRegexp("/widgets/1").
+			Reply(201, "")
 
 		req := NewRequest("GET", "http://other.com/index.html", nil)
 

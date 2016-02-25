@@ -3,26 +3,38 @@ package gnock
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 )
 
 type Interceptor struct {
-	scope     *Scope
-	method    string
-	path      string
-	responder Responder
-	times     int
+	scope      *Scope
+	method     string
+	path       string
+	pathRegexp *regexp.Regexp
+	responder  Responder
+	times      int
 }
 
 type Responder func(*http.Request) (*http.Response, error)
 
-func NewInterceptor(scope *Scope, method, path string) *Interceptor {
+func NewInterceptor(scope *Scope, method string, path string) *Interceptor {
 	return &Interceptor{
 		scope:  scope,
 		method: method,
 		path:   path,
 		times:  1,
+	}
+}
+
+func NewRegexpInterceptor(scope *Scope, method string, pathRegexp *regexp.Regexp) *Interceptor {
+	return &Interceptor{
+		scope:      scope,
+		method:     method,
+		pathRegexp: pathRegexp,
+		times:      1,
 	}
 }
 
@@ -63,6 +75,17 @@ func (i *Interceptor) Respond(responder Responder) *Scope {
 	return i.scope
 }
 
+func (i *Interceptor) String() string {
+	return fmt.Sprintf("%s %s%s\n", i.method, i.scope.String(), i.describePath())
+}
+
+func (i *Interceptor) describePath() string {
+	if i.pathRegexp != nil {
+		return i.pathRegexp.String()
+	}
+	return i.path
+}
+
 func (i *Interceptor) intercepts(req *http.Request) bool {
 	if i.times < 1 {
 		return false
@@ -70,10 +93,13 @@ func (i *Interceptor) intercepts(req *http.Request) bool {
 	if !i.scope.intercepts(req) {
 		return false
 	}
-	if req.Method != i.method || req.URL.Path != i.path {
+	if req.Method != i.method {
 		return false
 	}
-	return true
+	if i.pathRegexp != nil {
+		return i.pathRegexp.MatchString(req.URL.Path)
+	}
+	return i.path == req.URL.Path
 }
 
 func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {
