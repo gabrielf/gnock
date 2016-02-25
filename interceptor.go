@@ -76,7 +76,11 @@ func (i *Interceptor) Respond(responder Responder) *Scope {
 }
 
 func (i *Interceptor) String() string {
-	return fmt.Sprintf("%s %s%s\n", i.method, i.scope.String(), i.describePath())
+	methodAndURL := fmt.Sprintf("%s %s%s", i.method, i.scope.String(), i.describePath())
+	if i.whollyDefined() {
+		return methodAndURL + "\n"
+	}
+	return methodAndURL + " (partially defined)\n"
 }
 
 func (i *Interceptor) describePath() string {
@@ -87,6 +91,9 @@ func (i *Interceptor) describePath() string {
 }
 
 func (i *Interceptor) intercepts(req *http.Request) bool {
+	if i.partiallyDefined() {
+		return false
+	}
 	if i.times < 1 {
 		return false
 	}
@@ -100,6 +107,14 @@ func (i *Interceptor) intercepts(req *http.Request) bool {
 		return i.pathRegexp.MatchString(req.URL.Path)
 	}
 	return i.path == req.URL.Path
+}
+
+func (i *Interceptor) whollyDefined() bool {
+	return i.responder != nil
+}
+
+func (i *Interceptor) partiallyDefined() bool {
+	return !i.whollyDefined()
 }
 
 func (i *Interceptor) respond(req *http.Request) (*http.Response, error) {

@@ -9,6 +9,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"runtime"
+	"runtime/debug"
 	"testing"
 
 	"github.com/gabrielf/gnock"
@@ -206,6 +208,39 @@ var _ = Describe("gnock", func() {
 		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(418))
 		Expect(toString(res.Body)).To(Equal("I'm a teapot"))
+	})
+	Describe("Partially defined interceptor", func() {
+		var transport *gnock.Scope
+		BeforeEach(func() {
+			transport = gnock.Gnock("http://example.com")
+			transport.Get("/")
+		})
+		It("is not matched", func(done Done) {
+			defer func() {
+				if err := recover(); err != nil {
+					if re, ok := err.(runtime.Error); ok {
+						Fail(fmt.Sprintf("Expected a panic but not a runtime error. Got: %s\n%s", re.Error(), string(debug.Stack())))
+					}
+					close(done)
+				}
+			}()
+
+			transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+		})
+		It("is described as partially defined in panic", func(done Done) {
+			defer func() {
+				if err := recover(); err != nil {
+					if s, ok := err.(string); ok {
+						Expect(s).To(ContainSubstring("http://example.com/ (partially defined)"))
+						close(done)
+						return
+					}
+					panic(err)
+				}
+			}()
+
+			transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+		})
 	})
 	It("can fake errors", func() {
 		kaboom := fmt.Errorf("Kaboom!")
