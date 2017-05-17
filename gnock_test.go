@@ -198,12 +198,12 @@ var _ = Describe("gnock", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Respond(func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				Request:    req,
-				StatusCode: 418,
-				Body:       ioutil.NopCloser(bytes.NewBufferString("I'm a teapot")),
-			}, nil
-		})
+				return &http.Response{
+					Request:    req,
+					StatusCode: 418,
+					Body:       ioutil.NopCloser(bytes.NewBufferString("I'm a teapot")),
+				}, nil
+			})
 
 		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(418))
@@ -295,9 +295,9 @@ var _ = Describe("gnock", func() {
 		BeforeEach(func() {
 			interceptor = gnock.Gnock("http://example.com").
 				DefaultReplyHeaders(http.Header{
-				"Location": []string{"/login"},
-				"Date":     []string{"2015-09-10"},
-			}).
+					"Location": []string{"/login"},
+					"Date":     []string{"2015-09-10"},
+				}).
 				Get("/")
 		})
 		It("responds with the set headers", func() {
