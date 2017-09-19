@@ -22,7 +22,7 @@ func TestGinkgo(t *testing.T) {
 }
 
 var _ = Describe("gnock", func() {
-	It("fakes GET respons", func() {
+	It("fakes GET response", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Reply(200, "Hello, World!")
