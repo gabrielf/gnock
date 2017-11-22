@@ -15,6 +15,7 @@ type Scope struct {
 	defaultHeaders http.Header
 }
 
+// Make sure Scope conforms to the RoundTripper interface and can be used as a Transport
 var _ http.RoundTripper = (*Scope)(nil)
 
 func NewScope(parent *Scope, host string) *Scope {
@@ -33,6 +34,14 @@ func NewRegexpScope(parent *Scope, hostRegexp *regexp.Regexp) *Scope {
 		interceptors:   make([]*Interceptor, 0),
 		defaultHeaders: make(http.Header, 0),
 	}
+}
+
+func (s *Scope) ReplaceDefault() *Scope {
+	if originalDefaultTransport != nil {
+		originalDefaultTransport = http.DefaultTransport
+	}
+	http.DefaultTransport = s
+	return s
 }
 
 func (s *Scope) Gnock(host string) *Scope {

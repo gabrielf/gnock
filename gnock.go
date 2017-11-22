@@ -1,6 +1,9 @@
 package gnock
 
-import "regexp"
+import (
+	"net/http"
+	"regexp"
+)
 
 func Gnock(host string) *Scope {
 	return NewScope(nil, host)
@@ -8,4 +11,13 @@ func Gnock(host string) *Scope {
 
 func GnockRegexp(host string) *Scope {
 	return NewRegexpScope(nil, regexp.MustCompile(host))
+}
+
+var originalDefaultTransport http.RoundTripper
+
+func RestoreDefault() {
+	if originalDefaultTransport != nil {
+		http.DefaultTransport = originalDefaultTransport
+		originalDefaultTransport = nil
+	}
 }

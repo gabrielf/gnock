@@ -33,6 +33,19 @@ var _ = Describe("gnock", func() {
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
+	It("can be used with the default transport", func() {
+		gnock.Gnock("http://would-fail-in-unless-mocked").
+			Get("/").
+			Reply(123, "Hello, World!").
+			ReplaceDefault()
+		defer gnock.RestoreDefault()
+
+		req := NewRequest("GET", "http://would-fail-in-unless-mocked/", nil)
+
+		res := MustRoundTrip(http.DefaultTransport, req)
+		Expect(res.StatusCode).To(Equal(123))
+		Expect(toString(res.Body)).To(Equal("Hello, World!"))
+	})
 	It("can chain multiple responses", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
