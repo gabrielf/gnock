@@ -168,19 +168,17 @@ var _ = Describe("gnock", func() {
 
 		req := NewRequest("GET", "http://other.com/index.html", nil)
 
-		func() {
-			defer func() {
-				if err := recover(); err != nil {
-					Expect(err).To(ContainSubstring("GET http://other.com/index.html"))
-					Expect(err).To(ContainSubstring("GET http://example.com/path"))
-					Expect(err).To(ContainSubstring("POST http://www.example.com/form"))
-					Expect(err).To(ContainSubstring("PUT ^http://.*\\.example\\.com$/widgets/[\\d]+"))
-					close(done)
-				}
-			}()
-
-			transport.RoundTrip(req)
+		defer func() {
+			if err := recover(); err != nil {
+				Expect(err).To(ContainSubstring("GET http://other.com/index.html"))
+				Expect(err).To(ContainSubstring("GET http://example.com/path"))
+				Expect(err).To(ContainSubstring("POST http://www.example.com/form"))
+				Expect(err).To(ContainSubstring("PUT ^http://.*\\.example\\.com$/widgets/[\\d]+"))
+				close(done)
+			}
 		}()
+
+		transport.RoundTrip(req)
 	})
 	It("uses an added interceptor only once", func() {
 		transport := gnock.Gnock("http://example.com").
