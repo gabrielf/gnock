@@ -161,9 +161,9 @@ var _ = Describe("gnock", func() {
 			Reply(200, "OK").
 			Gnock("http://www.example.com").
 			Post("/form").
-			ReplyJSON(201, `{"key":"value"}`)
-		gnock.GnockRegexp("^http://.*\\.example\\.com$").
-			PutRegexp("/widgets/1").
+			ReplyJSON(201, `{"key":"value"}`).
+			GnockRegexp("^http://.*\\.example\\.com$").
+			PutRegexp("/widgets/[\\d]+").
 			Reply(201, "")
 
 		req := NewRequest("GET", "http://other.com/index.html", nil)
@@ -174,6 +174,7 @@ var _ = Describe("gnock", func() {
 					Expect(err).To(ContainSubstring("GET http://other.com/index.html"))
 					Expect(err).To(ContainSubstring("GET http://example.com/path"))
 					Expect(err).To(ContainSubstring("POST http://www.example.com/form"))
+					Expect(err).To(ContainSubstring("PUT ^http://.*\\.example\\.com$/widgets/[\\d]+"))
 					close(done)
 				}
 			}()
