@@ -97,6 +97,12 @@ func (s *Scope) Intercept(method, path string) *Interceptor {
 	return i
 }
 
+func (s *Scope) Interceptf(method, pathTemplate string, args ...interface{}) *Interceptor {
+	i := NewInterceptor(s, method, fmt.Sprintf(pathTemplate, args...))
+	s.interceptors = append(s.interceptors, i)
+	return i
+}
+
 func (s *Scope) InterceptRegexp(method, path string) *Interceptor {
 	i := NewRegexpInterceptor(s, method, regexp.MustCompile(path))
 	s.interceptors = append(s.interceptors, i)
@@ -121,6 +127,26 @@ func (s *Scope) Options(path string) *Interceptor {
 
 func (s *Scope) Delete(path string) *Interceptor {
 	return s.Intercept("DELETE", path)
+}
+
+func (s *Scope) Getf(pathTemplate string, args ...interface{}) *Interceptor {
+	return s.Interceptf("GET", pathTemplate, args...)
+}
+
+func (s *Scope) Postf(pathTemplate string, args ...interface{}) *Interceptor {
+	return s.Interceptf("POST", pathTemplate, args...)
+}
+
+func (s *Scope) Putf(pathTemplate string, args ...interface{}) *Interceptor {
+	return s.Interceptf("PUT", pathTemplate, args...)
+}
+
+func (s *Scope) Optionsf(pathTemplate string, args ...interface{}) *Interceptor {
+	return s.Interceptf("OPTIONS", pathTemplate, args...)
+}
+
+func (s *Scope) Deletef(pathTemplate string, args ...interface{}) *Interceptor {
+	return s.Interceptf("DELETE", pathTemplate, args...)
 }
 
 func (s *Scope) GetRegexp(path string) *Interceptor {

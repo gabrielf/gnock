@@ -92,6 +92,37 @@ var _ = Describe("gnock", func() {
 		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
+	It("makes URL interpolation easy", func() {
+		transport := gnock.Gnock("http://example.com").
+			Postf("/%s", "path").
+			Reply(201, "post").
+			Putf("/%s", "path").
+			Reply(202, "put").
+			Optionsf("/%s", "path").
+			Reply(204, "options").
+			Deletef("/%s", "path").
+			Reply(204, "delete")
+
+		req := NewRequest("POST", "http://example.com/path", nil)
+		res := MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(201))
+		Expect(toString(res.Body)).To(Equal("post"))
+
+		req = NewRequest("PUT", "http://example.com/path", nil)
+		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(202))
+		Expect(toString(res.Body)).To(Equal("put"))
+
+		req = NewRequest("OPTIONS", "http://example.com/path", nil)
+		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(204))
+		Expect(toString(res.Body)).To(Equal("options"))
+
+		req = NewRequest("DELETE", "http://example.com/path", nil)
+		res = MustRoundTrip(transport, req)
+		Expect(res.StatusCode).To(Equal(204))
+		Expect(toString(res.Body)).To(Equal("delete"))
+	})
 	It("intercepts custom HTTP methods", func() {
 		transport := gnock.Gnock("http://example.com").
 			Intercept("PROPFIND", "/").
