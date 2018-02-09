@@ -16,7 +16,7 @@ import (
 	"github.com/gabrielf/gnock"
 )
 
-func TestGinkgo(t *testing.T) {
+func TestGnock(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Gnock Suite")
 }
@@ -27,9 +27,9 @@ var _ = Describe("gnock", func() {
 			Get("/").
 			Reply(200, "Hello, World!")
 
-		req := NewRequest("GET", "http://example.com/", nil)
+		req := newRequest("GET", "http://example.com/", nil)
 
-		res := MustRoundTrip(transport, req)
+		res := mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
@@ -40,9 +40,9 @@ var _ = Describe("gnock", func() {
 			ReplaceDefault()
 		defer gnock.RestoreDefault()
 
-		req := NewRequest("GET", "http://would-fail-in-unless-mocked/", nil)
+		req := newRequest("GET", "http://would-fail-in-unless-mocked/", nil)
 
-		res := MustRoundTrip(http.DefaultTransport, req)
+		res := mustRoundTrip(http.DefaultTransport, req)
 		Expect(res.StatusCode).To(Equal(123))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
@@ -53,12 +53,12 @@ var _ = Describe("gnock", func() {
 			Get("/").
 			Reply(200, "Response 2")
 
-		req := NewRequest("GET", "http://example.com/", nil)
+		req := newRequest("GET", "http://example.com/", nil)
 
-		res := MustRoundTrip(transport, req)
+		res := mustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("Response 1"))
 
-		res = MustRoundTrip(transport, req)
+		res = mustRoundTrip(transport, req)
 		Expect(toString(res.Body)).To(Equal("Response 2"))
 	})
 	It("fakes responses for POST, PUT, OPTIONS, DELETE requests", func() {
@@ -72,23 +72,23 @@ var _ = Describe("gnock", func() {
 			Delete("/").
 			Reply(204, "delete")
 
-		req := NewRequest("POST", "http://example.com/", nil)
-		res := MustRoundTrip(transport, req)
+		req := newRequest("POST", "http://example.com/", nil)
+		res := mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(201))
 		Expect(toString(res.Body)).To(Equal("post"))
 
-		req = NewRequest("PUT", "http://example.com/", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("PUT", "http://example.com/", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(202))
 		Expect(toString(res.Body)).To(Equal("put"))
 
-		req = NewRequest("OPTIONS", "http://example.com/", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("OPTIONS", "http://example.com/", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("options"))
 
-		req = NewRequest("DELETE", "http://example.com/", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("DELETE", "http://example.com/", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
@@ -103,23 +103,23 @@ var _ = Describe("gnock", func() {
 			Deletef("/%s", "path").
 			Reply(204, "delete")
 
-		req := NewRequest("POST", "http://example.com/path", nil)
-		res := MustRoundTrip(transport, req)
+		req := newRequest("POST", "http://example.com/path", nil)
+		res := mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(201))
 		Expect(toString(res.Body)).To(Equal("post"))
 
-		req = NewRequest("PUT", "http://example.com/path", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("PUT", "http://example.com/path", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(202))
 		Expect(toString(res.Body)).To(Equal("put"))
 
-		req = NewRequest("OPTIONS", "http://example.com/path", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("OPTIONS", "http://example.com/path", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("options"))
 
-		req = NewRequest("DELETE", "http://example.com/path", nil)
-		res = MustRoundTrip(transport, req)
+		req = newRequest("DELETE", "http://example.com/path", nil)
+		res = mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(204))
 		Expect(toString(res.Body)).To(Equal("delete"))
 	})
@@ -128,28 +128,28 @@ var _ = Describe("gnock", func() {
 			Intercept("PROPFIND", "/").
 			Reply(200, `<?xml version="1.0" encoding="utf-8" ?>`)
 
-		req := NewRequest("PROPFIND", "http://example.com/", nil)
+		req := newRequest("PROPFIND", "http://example.com/", nil)
 
-		res := MustRoundTrip(transport, req)
+		res := mustRoundTrip(transport, req)
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal(`<?xml version="1.0" encoding="utf-8" ?>`))
 	})
-	It("can intercept host and path using Regexes", func() {
+	It("can intercept host and path using Regexps", func() {
 		transport := gnock.GnockRegexp("http://.*\\.com").
 			InterceptRegexp("GET", "/(fu)?bar").
 			Times(2).
 			Reply(200, "success")
 
-		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/fubar", nil))
+		res := mustRoundTrip(transport, newRequest("GET", "http://example.com/fubar", nil))
 		Expect(res.StatusCode).To(Equal(200))
 
-		res = MustRoundTrip(transport, NewRequest("GET", "http://other.com/bar", nil))
+		res = mustRoundTrip(transport, newRequest("GET", "http://other.com/bar", nil))
 		Expect(res.StatusCode).To(Equal(200))
 	})
 	It("panics when no match is found for the request", func() {
 		transport := gnock.Gnock("http://example.com")
 
-		req := NewRequest("GET", "http://other.com/", nil)
+		req := newRequest("GET", "http://other.com/", nil)
 
 		Expect(func() {
 			transport.RoundTrip(req)
@@ -166,7 +166,7 @@ var _ = Describe("gnock", func() {
 			PutRegexp("/widgets/[\\d]+").
 			Reply(201, "")
 
-		req := NewRequest("GET", "http://other.com/index.html", nil)
+		req := newRequest("GET", "http://other.com/index.html", nil)
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -185,24 +185,24 @@ var _ = Describe("gnock", func() {
 			Get("/").
 			Reply(200, "Hello, World!")
 
-		req := NewRequest("GET", "http://example.com/", nil)
+		req := newRequest("GET", "http://example.com/", nil)
 
-		MustRoundTrip(transport, req)
+		mustRoundTrip(transport, req)
 
 		Expect(func() {
 			transport.RoundTrip(req)
 		}).To(Panic())
 	})
-	It("can repeat response several times", func() {
+	It("can repeat a response several times", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			Times(4).
 			Reply(200, "Hello, World!")
 
-		req := NewRequest("GET", "http://example.com/", nil)
+		req := newRequest("GET", "http://example.com/", nil)
 
 		for i := 0; i < 4; i++ {
-			MustRoundTrip(transport, req)
+			mustRoundTrip(transport, req)
 		}
 
 		Expect(func() {
@@ -214,12 +214,15 @@ var _ = Describe("gnock", func() {
 			Get("/").
 			Reply(200, "body")
 
-		// This defer is run after the method at which time the above interceptor will have been called
+		// Below IsDone is run after this method has completed at which time
+		// the above interceptor will have been called.
 		defer transport.IsDone()
 
+		// Below IsDone is run now at which time the above interceptor has not
+		// been called which leads to a panic.
 		Expect(transport.IsDone).To(Panic())
 
-		MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+		mustRoundTrip(transport, newRequest("GET", "http://example.com/", nil))
 	})
 	It("can fake requests to multiple domains", func() {
 		transport := gnock.Gnock("http://example.com").
@@ -229,11 +232,11 @@ var _ = Describe("gnock", func() {
 			Get("/").
 			Reply(200, "other")
 
-		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+		res := mustRoundTrip(transport, newRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("body"))
 
-		res = MustRoundTrip(transport, NewRequest("GET", "http://other.com/", nil))
+		res = mustRoundTrip(transport, newRequest("GET", "http://other.com/", nil))
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("other"))
 	})
@@ -248,11 +251,11 @@ var _ = Describe("gnock", func() {
 				}, nil
 			})
 
-		res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+		res := mustRoundTrip(transport, newRequest("GET", "http://example.com/", nil))
 		Expect(res.StatusCode).To(Equal(418))
 		Expect(toString(res.Body)).To(Equal("I'm a teapot"))
 	})
-	Describe("Partially defined interceptor", func() {
+	Describe("A partially defined interceptor", func() {
 		var transport *gnock.Scope
 		BeforeEach(func() {
 			transport = gnock.Gnock("http://example.com")
@@ -268,7 +271,7 @@ var _ = Describe("gnock", func() {
 				}
 			}()
 
-			transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+			transport.RoundTrip(newRequest("GET", "http://example.com/", nil))
 		})
 		It("is described as partially defined in panic", func(done Done) {
 			defer func() {
@@ -282,17 +285,17 @@ var _ = Describe("gnock", func() {
 				}
 			}()
 
-			transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+			transport.RoundTrip(newRequest("GET", "http://example.com/", nil))
 		})
 	})
 	It("can fake errors", func() {
-		kaboom := fmt.Errorf("Kaboom!")
+		kaboom := fmt.Errorf("kaboom")
 
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
 			ReplyError(kaboom)
 
-		_, err := transport.RoundTrip(NewRequest("GET", "http://example.com/", nil))
+		_, err := transport.RoundTrip(newRequest("GET", "http://example.com/", nil))
 		Expect(err).To(Equal(kaboom))
 	})
 	Describe("Faking JSON", func() {
@@ -301,7 +304,7 @@ var _ = Describe("gnock", func() {
 				Get("/json").
 				ReplyJSON(200, `{"key":"value"}`)
 
-			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			res := mustRoundTrip(transport, newRequest("GET", "http://example.com/json", nil))
 			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
 			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
 		})
@@ -314,7 +317,7 @@ var _ = Describe("gnock", func() {
 				Get("/json").
 				ReplyJSON(200, Widget{Key: "value"})
 
-			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			res := mustRoundTrip(transport, newRequest("GET", "http://example.com/json", nil))
 			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
 			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
 		})
@@ -327,7 +330,7 @@ var _ = Describe("gnock", func() {
 				Get("/json").
 				ReplyJSON(200, json)
 
-			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/json", nil))
+			res := mustRoundTrip(transport, newRequest("GET", "http://example.com/json", nil))
 			Expect(res.Header.Get("Content-Type")).To(Equal("application/json"))
 			Expect(toString(res.Body)).To(MatchJSON(`{"key":"value"}`))
 		})
@@ -346,7 +349,7 @@ var _ = Describe("gnock", func() {
 		It("responds with the set headers", func() {
 			transport := interceptor.Reply(200, "OK")
 
-			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+			res := mustRoundTrip(transport, newRequest("GET", "http://example.com/", nil))
 			Expect(res.Header["Location"]).To(Equal([]string{"/login"}))
 			Expect(res.Header["Date"]).To(Equal([]string{"2015-09-10"}))
 		})
@@ -359,20 +362,20 @@ var _ = Describe("gnock", func() {
 				}, nil
 			})
 
-			res := MustRoundTrip(transport, NewRequest("GET", "http://example.com/", nil))
+			res := mustRoundTrip(transport, newRequest("GET", "http://example.com/", nil))
 			Expect(res.Header["Location"]).To(Equal([]string{"/logout"}))
 			Expect(res.Header["Date"]).To(Equal([]string{"2015-09-10"}))
 		})
 	})
 })
 
-func NewRequest(method, url string, body io.Reader) *http.Request {
+func newRequest(method, url string, body io.Reader) *http.Request {
 	req, err := http.NewRequest(method, url, body)
 	Expect(err).ToNot(HaveOccurred())
 	return req
 }
 
-func MustRoundTrip(transport http.RoundTripper, req *http.Request) *http.Response {
+func mustRoundTrip(transport http.RoundTripper, req *http.Request) *http.Response {
 	res, err := transport.RoundTrip(req)
 	Expect(err).ToNot(HaveOccurred())
 	return res
