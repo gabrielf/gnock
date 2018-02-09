@@ -180,6 +180,20 @@ var _ = Describe("gnock", func() {
 
 		transport.RoundTrip(req)
 	})
+	It("describes in error message if there are no interceptors", func(done Done) {
+		transport := gnock.Gnock("http://example.com")
+
+		req := newRequest("GET", "http://other.com/", nil)
+
+		defer func() {
+			if err := recover(); err != nil {
+				Expect(err).To(ContainSubstring("interceptors:\nnone"))
+				close(done)
+			}
+		}()
+
+		transport.RoundTrip(req)
+	})
 	It("describes how to add the missing interceptor on panic", func(done Done) {
 		transport := gnock.Gnock("http://example.com")
 

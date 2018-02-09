@@ -197,6 +197,9 @@ func describeInterceptors(s *Scope) string {
 	for _, i := range s.interceptors {
 		result += i.String()
 	}
+	if result == "" {
+		return "none\n"
+	}
 	return result
 }
 
