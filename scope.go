@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type Scope struct {
@@ -75,7 +76,7 @@ func (s *Scope) roundTrip(req *http.Request) (*http.Response, error) {
 		return s.child.roundTrip(req)
 	}
 
-	panic(fmt.Sprintf("Gnock found no match for request: %s\n\nRegistered interceptors:\n%s", describeRequest(req), describeInterceptors(s)))
+	panic(fmt.Sprintf("Gnock found no match for request: %s\n\nRegistered interceptors:\n%s\n%s", describeRequest(req), describeInterceptors(s), describeUsage(req)))
 }
 
 func (s *Scope) IsDone() {
@@ -197,4 +198,28 @@ func describeInterceptors(s *Scope) string {
 		result += i.String()
 	}
 	return result
+}
+
+var existingHTTPMethodFuncs = map[string]bool{
+	"Get":     true,
+	"Post":    true,
+	"Put":     true,
+	"Options": true,
+	"Delete":  true,
+}
+
+func describeUsage(req *http.Request) string {
+	schemeAndHost := req.URL.Scheme + "://" + req.URL.Host
+	httpMethodFunc := strings.Title(strings.ToLower(req.Method))
+	interceptorParams := fmt.Sprintf(`"%s"`, req.URL.Path)
+
+	if !existingHTTPMethodFuncs[httpMethodFunc] {
+		httpMethodFunc = "Intercept"
+		interceptorParams = fmt.Sprintf(`"%s", "%s"`, req.Method, req.URL.Path)
+	}
+
+	return fmt.Sprintf(`Did you forget to add the interceptor?
+gnock.Gnock("%s").
+	%s(%s).
+	Reply(200, "OK")`, schemeAndHost, httpMethodFunc, interceptorParams)
 }

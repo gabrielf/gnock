@@ -180,6 +180,38 @@ var _ = Describe("gnock", func() {
 
 		transport.RoundTrip(req)
 	})
+	It("describes how to add the missing interceptor on panic", func(done Done) {
+		transport := gnock.Gnock("http://example.com")
+
+		req := newRequest("GET", "http://other.com/index.html", nil)
+
+		defer func() {
+			if err := recover(); err != nil {
+				Expect(err).To(ContainSubstring(`gnock.Gnock("http://other.com").
+	Get("/index.html").
+	Reply(200, "OK")`))
+				close(done)
+			}
+		}()
+
+		transport.RoundTrip(req)
+	})
+	It("describes how to add the missing interceptor on panic even for custom HTTP method", func(done Done) {
+		transport := gnock.Gnock("http://example.com")
+
+		req := newRequest("PROPFIND", "http://other.com/", nil)
+
+		defer func() {
+			if err := recover(); err != nil {
+				Expect(err).To(ContainSubstring(`gnock.Gnock("http://other.com").
+	Intercept("PROPFIND", "/").
+	Reply(200, "OK")`))
+				close(done)
+			}
+		}()
+
+		transport.RoundTrip(req)
+	})
 	It("uses an added interceptor only once", func() {
 		transport := gnock.Gnock("http://example.com").
 			Get("/").
