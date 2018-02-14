@@ -3,6 +3,7 @@ package gnock
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 )
@@ -20,6 +21,14 @@ type Scope struct {
 var _ http.RoundTripper = (*Scope)(nil)
 
 func NewScope(parent *Scope, host string) *Scope {
+	parsed, err := url.Parse(host)
+	if err != nil {
+		panic(err.Error())
+	}
+	if parsed.Path != "" {
+		panic(fmt.Sprintf("host should only contain scheme, host and port not path, got: %q", host))
+	}
+
 	return &Scope{
 		parent:         parent,
 		host:           host,

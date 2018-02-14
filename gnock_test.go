@@ -33,6 +33,17 @@ var _ = Describe("gnock", func() {
 		Expect(res.StatusCode).To(Equal(200))
 		Expect(toString(res.Body)).To(Equal("Hello, World!"))
 	})
+	It("panics if host is invalid, includes a path or a query string to avoid ambiguous usage", func() {
+		Expect(func() {
+			gnock.Gnock(":")
+		}).To(Panic())
+		Expect(func() {
+			gnock.Gnock("http://example.com/with/path")
+		}).To(Panic())
+		Expect(func() {
+			gnock.Gnock("http://example.com/?key=value")
+		}).To(Panic())
+	})
 	It("can be used with the default transport", func() {
 		gnock.Gnock("http://would-fail-in-unless-mocked").
 			Get("/").
